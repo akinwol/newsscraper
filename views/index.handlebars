@@ -1,0 +1,54 @@
+
+<div class="jumbotron mainPage" style="text-align: center;">
+    <h1 class="display-3">Billboard Scrapper</h1>
+    {{!-- <p class="lead">Welcome to ...</p> --}}
+    <hr class="my-2">
+    <p class="lead">Scrapping with Mongo</p>
+
+</div>
+
+
+<div class="container">
+    <div class="row">
+
+        <div class="col-12">
+            {{#each article}}
+            {{#unless saved}}
+            <div class="card product ">
+                <div class="card-header">
+                   
+                </div>
+
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-9">
+                         <a href="{{this.link}}" target="_blank"> <strong>{{this.title}}</strong></a>
+                        </div>
+                        <div class="col-3">
+
+                            <button type="submit" class="btn btn-primary fav-button" data-id="{{this.id}}"> Save Article</button>
+
+                    
+
+                        </div>
+
+                    </div>
+                
+
+
+                </div>
+
+            </div>
+            {{/unless}}
+
+            {{/each}}
+        </div>
+
+    </div>
+</div>
+
+
+{{!-- </header> --}}
+
+{{!--
+<script type="text/javascript" src="./js/index.js"></script> --}}
