@@ -9,36 +9,57 @@ module.exports = function (app) {
         request("https://www.billboard.com/", function (error, response, html) {
 
             var $ = cheerio.load(html);
-            var results = {};
+            var resultArray = [];
+
             $("section ul li").each(function (i, element) {
-                results.title = $(this).children("a").text();
-                results.link = $(this).children("a").attr("href");
-                db.Article.create(results)
-                    .then(dbArticle => {
-                        console.log(dbArticle)
-                    })
-                    .catch(err => {
-                        return res.json(err)
-                    })
+                var result = {};
+                result.title = $(this).children("a").text();
+                result.link = $(this).children("a").attr("href");
+
+                if (result.title) {
+                    // resultArray.push(result)
+                    // console.log(result)
+                    db.Article.create(result)
+                        .then(dbArticle => {
+                            console.log(dbArticle)
+                            res.send(result)
+                        })
+                        .catch(err => {
+                            return res.json(err)
+                        })
+                };
+
+
             });
-            // res.json(results)
-            //   console.log(results)
+            res.send("Scrape Complete");
 
         });
 
     });
     // route for finding an article and populating the note 
-    app.get("/article/:id", function(req,res){
-        console.log(req.params.id)
-        db.Article.findOne({_id:req.params.id})
-        .populate("Note")
-        .then(dbArticle =>{
-            res.json(dbArticle)
-        })
-        .catch(err =>{
-            res.json(err)
-        })
+    app.get("/article/:id", function (req, res) {
+        db.Article.findOne({ _id: req.params.id })
+            .populate("notes")
+            .then(dbArticle => {
+                res.json(dbArticle)
+            })
+            .catch(err => {
+                res.json(err)
+            })
     });
+    app.post("/article/:id", function (req, res) {
+        console.log(req.params.id)
+        db.Note.create(req.body)
+            .then(function (dbNote) {
+                return db.Article.findOneAndUpdate({ _id: req.params.id }, { $push: { notes: dbNote._id } }, { new: true });
+            })
+            .then(dbArticle => {
+                res.json(dbArticle)
+            })
+            .catch(err => {
+                res.json(err)
+            })
+    })
 
     // Route to add article to saved 
     app.put("/api/saved", function (req, res) {
@@ -55,8 +76,8 @@ module.exports = function (app) {
         })
 
     });
-     // Route to remove article from saved
-     app.put("/api/removesaved", function (req, res) {
+    // Route to remove article from saved
+    app.put("/api/removesaved", function (req, res) {
         var id = req.body.id;
         // console.log(req.body.id)
         db.Article.findById(id, function (err, article) {
@@ -76,12 +97,31 @@ module.exports = function (app) {
     // Route to clear articles 
     app.delete("/deleteall", function (req, res) {
         db.Article.remove({})
-            .then(results =>{
-                console.log(results)
-            })
-            .catch(err =>{
+            .then(articleResults => {
+                db.Note.remove({})
+                    .then(noteRes => {
+                        console.log(noteRes)
+                    }).catch(err => {
+                        console.log(err)
+                    });
+                console.log(articleResults)
+            }).catch(err => {
                 console.log(err)
             })
+
     });
+
+    // Route to remove a note 
+    app.delete("/deletenote/:id", function (req, res) {
+        var noteId = req.params.id
+        console.log(noteId)
+        db.Note.remove({ _id: noteId })
+            .then(results => {
+                res.json(results)
+            })
+            .catch(err => {
+                res.json(err)
+            })
+    })
 
 };

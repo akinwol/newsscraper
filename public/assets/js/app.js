@@ -41,6 +41,9 @@ $(function () {
 
     // add a note to article 
     $(".article-note-button").on("click", function () {
+        $("#notes-list").empty();
+        $("#note-description").val("");
+        $("#note-title").val("");
         var articleId = $(this).attr("data-id");
         var articleTitle = $(this).attr("data-title");
         $.ajax({
@@ -50,20 +53,59 @@ $(function () {
             console.log(data);
             console.log(data._id)
             $(".modal-title").html(`<strong> Notes for: </strong> ${data.title}`);
-            $(".save-note").data('id', data._id);
+            $(".modal-footer").html(` <button type="button" class="btn btn-primary save-note" data-id="${data._id}" data-dismiss="modal">Save
+            note</button>`);
+            if (data.notes){
+                data.notes.forEach(element => {
+                    $("#notes-list").append(` <li class="list-group-item d-flex justify-content-between align-items-center">
+                    ${element.body}
+
+                    <span class="badge badge-primary badge-pill">
+                        <button type="button" class="close remove-note" data-dismiss="modal"
+                            aria-label="Close" data-id="${element._id}">
+                            <span aria-hidden="true" >×</span>
+                        </button>
+                    </span>
+                </li>`)
+                });
+                
+            }
+           
         })
 
 
 
     });
 
-    $(".save-note").on("click", function () {
+// event listener to save a note 
+    $(document).on("click", ".save-note", function(){
         var noteDescription = $("#note-description").val().trim();
-        $("#note-description").empty();
+        // var noteTitle= $("#note-title").val().trim();
+        var articleId = $(this).attr("data-id")
+        // $("enter-notes").empty();
+      
         console.log(noteDescription)
-        console.log(`Id: ${$(this).attr("data-id")}`)
-
+        console.log(`Id: ${articleId}`)
+        $.ajax({
+            method: "POST",
+            url: `/article/${articleId}`,
+            data: {
+                // title: noteTitle,
+                body: noteDescription
+            }
+        }).then(function(data){
+            console.log(data)
+        })
     });
+//   event listener to remove note 
+$(document).on("click", ".remove-note", function(){
+    var noteId = $(this).attr("data-id")
+    console.log(noteId);
+    $.ajax({
+        method:"DELETE",
+        url: `/deletenote/${noteId}`
+    });
+})
 
 
 
@@ -74,14 +116,23 @@ $(function () {
             url: "/deleteall",
             success: function (response) {
                 console.log(respnse);
-                window.location.replace("/")
             }
         })
+        window.location.replace("/");
     });
 
     $("#scrape").on("click", function () {
-        $.get("/api/scrape", function () {
-            window.location.replace("/")
-        });
+        $.ajax({
+            type:"GET",
+            url: "/api/scrape",
+            success: function(res){
+                console.log(res);
+                window.location.href="/"
+            }
+        })
+        // $.get("/api/scrape").then(res =>{
+        //     console.log("done")
+        // });
+        // window.location.href("/");
     })
 });
