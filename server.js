@@ -23,7 +23,10 @@ app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
 // Connect to the Mongo DB
-mongoose.connect("mongodb://localhost/newsscrapper", { useNewUrlParser: true });
+var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/newsscrapper";
+mongoose.Promise = Promise;
+mongoose.connect(MONGODB_URI);
+// mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
 
 // Routes
 require("./routes/apiRoutes")(app);
